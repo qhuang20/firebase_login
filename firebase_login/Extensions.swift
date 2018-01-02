@@ -29,59 +29,69 @@ extension UIView {
         _ = anchor(top: top, left: left, bottom: bottom, right: right, topConstant: topConstant, leftConstant: leftConstant, bottomConstant: bottomConstant, rightConstant: rightConstant)
     }
     
-    func anchor(top: NSLayoutYAxisAnchor? = nil, left: NSLayoutXAxisAnchor? = nil, bottom: NSLayoutYAxisAnchor? = nil, right: NSLayoutXAxisAnchor? = nil, topConstant: CGFloat = 0, leftConstant: CGFloat = 0, bottomConstant: CGFloat = 0, rightConstant: CGFloat = 0, widthConstant: CGFloat = 0, heightConstant: CGFloat = 0) -> [NSLayoutConstraint] {
+    func anchor(top: NSLayoutYAxisAnchor? = nil, left: NSLayoutXAxisAnchor? = nil, bottom: NSLayoutYAxisAnchor? = nil, right: NSLayoutXAxisAnchor? = nil, topConstant: CGFloat = 0, leftConstant: CGFloat = 0, bottomConstant: CGFloat = 0, rightConstant: CGFloat = 0, widthConstant: CGFloat = 0, heightConstant: CGFloat = 0) -> [String: NSLayoutConstraint] {
         translatesAutoresizingMaskIntoConstraints = false
         
-        var anchors = [NSLayoutConstraint]()
+        var anchors: [String: NSLayoutConstraint] = [:]
         
         if let top = top {
-            anchors.append(topAnchor.constraint(equalTo: top, constant: topConstant))
+            anchors["top"] = topAnchor.constraint(equalTo: top, constant: topConstant)
         }
         
         if let left = left {
-            anchors.append(leftAnchor.constraint(equalTo: left, constant: leftConstant))
+            anchors["left"] = leftAnchor.constraint(equalTo: left, constant: leftConstant)
         }
         
         if let bottom = bottom {
-            anchors.append(bottomAnchor.constraint(equalTo: bottom, constant: -bottomConstant))
+            anchors["bottom"] = bottomAnchor.constraint(equalTo: bottom, constant: -bottomConstant)
         }
         
         if let right = right {
-            anchors.append(rightAnchor.constraint(equalTo: right, constant: -rightConstant))
+            anchors["right"] = rightAnchor.constraint(equalTo: right, constant: -rightConstant)
         }
         
         if widthConstant > 0 {
-            anchors.append(widthAnchor.constraint(equalToConstant: widthConstant))
+            anchors["width"] = widthAnchor.constraint(equalToConstant: widthConstant)
         }
         
         if heightConstant > 0 {
-            anchors.append(heightAnchor.constraint(equalToConstant: heightConstant))
+            anchors["height"] = heightAnchor.constraint(equalToConstant: heightConstant)
         }
         
-        anchors.forEach({$0.isActive = true})
+        anchors.forEach { (key, anchor) in
+            anchor.isActive = true
+        }
         
         return anchors
     }
     
     //center
-    func anchorTo(centerX: NSLayoutXAxisAnchor? = nil, centerY: NSLayoutYAxisAnchor? = nil, xConstant: CGFloat = 0, yConstant: CGFloat = 0, widthConstant: CGFloat = 0, heightConstant: CGFloat = 0) {
+    func anchorTo(centerX: NSLayoutXAxisAnchor? = nil, centerY: NSLayoutYAxisAnchor? = nil, xConstant: CGFloat = 0, yConstant: CGFloat = 0, widthConstant: CGFloat = 0, heightConstant: CGFloat = 0) -> [String: NSLayoutConstraint] {
         translatesAutoresizingMaskIntoConstraints = false
         
+        var anchors: [String: NSLayoutConstraint] = [:]
+        
         if let centerX = centerX {
-            centerXAnchor.constraint(equalTo: centerX, constant: xConstant).isActive = true
+            anchors["centerX"] = centerXAnchor.constraint(equalTo: centerX, constant: xConstant)
         }
         
         if let centerY = centerY {
-            centerYAnchor.constraint(equalTo: centerY, constant: yConstant).isActive = true
+            anchors["centerY"] = centerYAnchor.constraint(equalTo: centerY, constant: yConstant)
         }
         
         if widthConstant > 0 {
-            widthAnchor.constraint(equalToConstant: widthConstant).isActive = true
+            anchors["width"] = widthAnchor.constraint(equalToConstant: widthConstant)
         }
         
         if heightConstant > 0 {
-            heightAnchor.constraint(equalToConstant: heightConstant).isActive = true
+            anchors["height"] = heightAnchor.constraint(equalToConstant: heightConstant)
         }
+        
+        anchors.forEach { (key, anchor) in
+            anchor.isActive = true
+        }
+        
+        return anchors
         
     }
     
