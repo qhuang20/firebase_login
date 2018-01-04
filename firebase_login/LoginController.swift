@@ -30,65 +30,6 @@ class LoginController: UIViewController {
         return button
     }()
     
-    @objc func handleLoginOrRegister() {
-        if loginRegisterSegmentedControl.selectedSegmentIndex == 0 {
-            handleLogin()
-        } else {
-            handleRegister()
-        }
-    }
-    
-    @objc func handleLogin() {
-        guard let email = emailTextField.text, let password = passwordTextField.text else {
-            print("Form is not valid")
-            return
-        }
-        
-        Auth.auth().signIn(withEmail: email, password: password, completion: { (user, error) in
-            
-            if let error = error {
-                print(error)
-                return
-            }
-            
-            //successfully logged in our user
-            self.dismiss(animated: true, completion: nil)
-            
-        })
-        
-    }
-    
-    @objc func handleRegister() {
-        guard let email = emailTextField.text, let password = passwordTextField.text, let name = nameTextField.text else {
-            print("Form is not valid")
-            return
-        }
-        
-        Auth.auth().createUser(withEmail: email, password: password) { (user, error) in
-            if let error = error {
-                print(error)
-                return
-            }
-            
-            //successfully authenticated user
-            guard let uid = user?.uid else { return }
-            let ref = Database.database().reference()
-            let usersReference = ref.child("users").child(uid)//path
-            
-            let values = ["name": name, "email": email]
-            usersReference.updateChildValues(values) { (error, ref) in
-                if let error = error {
-                    print(error)
-                    return
-                }
-                
-                print("Saved user successfully into Firebase db")
-                self.dismiss(animated: true, completion: nil)
-            }
-        }
-       
-    }
-    
     let nameTextField: UITextField = {
         let tf = UITextField()
         tf.placeholder = "Name"
@@ -121,10 +62,14 @@ class LoginController: UIViewController {
         return tf
     }()
     
-    let profileImageView: UIImageView = {
+    lazy var profileImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "gameofthrones_splash")
         imageView.contentMode = .scaleAspectFill
+        
+        imageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSelectProfileImageView)))//since self, must be lazy var
+        imageView.isUserInteractionEnabled = true
+        
         return imageView
     }()
     
