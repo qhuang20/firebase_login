@@ -94,11 +94,8 @@
 		7B1AC1941FF9D2B900591080 /* firebase_login */ = {
 			isa = PBXGroup;
 			children = (
-				7B71FFF71FFC7619004CBC37 /* NewMessageController.swift */,
-				7B7100262000A083004CBC37 /* UIImageView+CacheHelper.swift */,
-				7B71FFF91FFC848D004CBC37 /* User.swift */,
-				7B71FFF31FF9D95A004CBC37 /* LoginController.swift */,
-				7B71FFFB1FFD9E50004CBC37 /* LoginController+handlers.swift */,
+				7B7100292000A4E7004CBC37 /* NewMessageController */,
+				7B7100282000A3E1004CBC37 /* LoginController */,
 				7B1AC1971FF9D2B900591080 /* MessagesController.swift */,
 				7B1AC1951FF9D2B900591080 /* AppDelegate.swift */,
 				7B71FFF11FF9D525004CBC37 /* Extensions.swift */,
@@ -110,6 +107,25 @@
 				7B1AC1991FF9D2B900591080 /* Main.storyboard */,
 			);
 			path = firebase_login;
+			sourceTree = "<group>";
+		};
+		7B7100282000A3E1004CBC37 /* LoginController */ = {
+			isa = PBXGroup;
+			children = (
+				7B71FFF31FF9D95A004CBC37 /* LoginController.swift */,
+				7B71FFFB1FFD9E50004CBC37 /* LoginController+handlers.swift */,
+			);
+			name = LoginController;
+			sourceTree = "<group>";
+		};
+		7B7100292000A4E7004CBC37 /* NewMessageController */ = {
+			isa = PBXGroup;
+			children = (
+				7B71FFF71FFC7619004CBC37 /* NewMessageController.swift */,
+				7B7100262000A083004CBC37 /* UIImageView+CacheHelper.swift */,
+				7B71FFF91FFC848D004CBC37 /* User.swift */,
+			);
+			name = NewMessageController;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
