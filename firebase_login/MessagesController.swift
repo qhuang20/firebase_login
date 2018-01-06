@@ -37,7 +37,7 @@ class MessagesController: UITableViewController {
 
             let key = Database.database().reference().child("users").child(uid!)
             key.observeSingleEvent(of: .value, with: { (snapshot) in
-                
+//observeSingleEvent - this block will be invoked, then, removed right away.
                 if let dictionary = snapshot.value as? [String: AnyObject] {
                     self.navigationItem.title = dictionary["name"] as? String
                 }
