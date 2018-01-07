@@ -27,22 +27,27 @@ class MessagesController: UITableViewController {
         let navController = UINavigationController(rootViewController: newMessageController)
         present(navController, animated: true, completion: nil)
     }
-    
+     
     private func checkIfUserIsLoggedIn() {
         if Auth.auth().currentUser?.uid == nil {
             perform(#selector(handleLogout), with: nil, afterDelay: 0)
             //delay: to avoid presenting too many controllers at same time
         } else {
-            let uid = Auth.auth().currentUser?.uid
-
-            let key = Database.database().reference().child("users").child(uid!)
-            key.observeSingleEvent(of: .value, with: { (snapshot) in
-//observeSingleEvent - this block will be invoked, then, removed right away.
-                if let dictionary = snapshot.value as? [String: AnyObject] {
-                    self.navigationItem.title = dictionary["name"] as? String
-                }
-            }, withCancel: nil)
+            fetchUserAndSetupNavBarTitle()
         }
+    }
+    
+    public func fetchUserAndSetupNavBarTitle() {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        
+        let key = Database.database().reference().child("users").child(uid)
+        key.observeSingleEvent(of: .value, with: { (snapshot) in
+        //observeSingleEvent - this block will be invoked and removed right away.
+            if let dictionary = snapshot.value as? [String: AnyObject] {
+                self.navigationItem.title = dictionary["name"] as? String
+            }
+        }, withCancel: nil)
+
     }
     
     @objc func handleLogout() {
@@ -53,7 +58,9 @@ class MessagesController: UITableViewController {
             print(logoutError)
         }
         
-        present(LoginController(), animated: true, completion: nil)
+        let loginController = LoginController()
+        loginController.messagesController = self
+        present(loginController, animated: true, completion: nil)
     }
 
 }

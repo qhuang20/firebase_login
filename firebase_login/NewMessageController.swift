@@ -14,7 +14,7 @@ class NewMessageController: UITableViewController {
     let cellId = "cellId"
     
     var users = [User]()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
