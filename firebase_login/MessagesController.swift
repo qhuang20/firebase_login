@@ -45,9 +45,20 @@ class MessagesController: UITableViewController {
         //observeSingleEvent - this block will be invoked and removed right away.
             if let dictionary = snapshot.value as? [String: AnyObject] {
                 self.navigationItem.title = dictionary["name"] as? String
+                
+                //
+                self.navigationItem.titleView = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 40))
+                self.navigationItem.titleView?.backgroundColor = .red
+            self.navigationItem.titleView?.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.showChatController)))
             }
         }, withCancel: nil)
 
+    }
+    
+    @objc private func showChatController() {
+        print("hhhhhh")
+        let chatLogController = ChatLogController(collectionViewLayout: UICollectionViewFlowLayout())
+        navigationController?.pushViewController(chatLogController, animated: true)
     }
     
     @objc func handleLogout() {
