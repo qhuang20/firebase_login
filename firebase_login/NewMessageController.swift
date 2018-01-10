@@ -33,7 +33,7 @@ class NewMessageController: UITableViewController {
                 let user = User(dictionary: dictionary)
                 user.id = snapshot.key
                 self.users.append(user)
-                
+               
                 //Working thread depences on the DataEventType
                 //DispatchQueue.main.async(execute: {
                     self.tableView.reloadData()
@@ -82,36 +82,4 @@ class NewMessageController: UITableViewController {
     
 }
 
-class UserCell: UITableViewCell {
-    
-    let profileImageView: UIImageView = {
-        let imageView = UIImageView(image: #imageLiteral(resourceName: "nedstark"))
-        imageView.layer.cornerRadius = 24
-        imageView.layer.masksToBounds = true
-        imageView.contentMode = .scaleAspectFill
-        return imageView
-    }()
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        
-        textLabel?.frame = CGRect(x: 64, y: textLabel!.frame.origin.y - 2, width: textLabel!.frame.width, height: textLabel!.frame.height)
-        
-        detailTextLabel?.frame = CGRect(x: 64, y: detailTextLabel!.frame.origin.y + 2, width: detailTextLabel!.frame.width, height: detailTextLabel!.frame.height)
-    }
-    
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
-        super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
-        
-        addSubview(profileImageView)
 
-        _ = profileImageView.anchor(top: nil, left: self.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 8, bottomConstant: 0, rightConstant: 0, widthConstant: 48, heightConstant: 48)
-        profileImageView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-}

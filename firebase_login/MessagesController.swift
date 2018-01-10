@@ -10,7 +10,11 @@ import UIKit
 import Firebase
 
 class MessagesController: UITableViewController {
+    
+    var messages = [Message]()
 
+    let cellId = "cellId"
+    
     override func viewDidLoad() {
         super.viewDidLoad()
                 
@@ -21,10 +25,11 @@ class MessagesController: UITableViewController {
         
         checkIfUserIsLoggedIn()
         
-        observeMessages()
+        tableView.register(UserCell.self, forCellReuseIdentifier: cellId)
+        
     }
     
-    var messages = [Message]()
+    var messagesDictionary = [String: Message]()
 
     private func observeMessages() {
         let ref = Database.database().reference().child("messages")
@@ -32,8 +37,15 @@ class MessagesController: UITableViewController {
             
             if let dictionary = snapshot.value as? [String: AnyObject] {
                 let message = Message(dictionary: dictionary)
-                self.messages.append(message)
                 
+                if let toId = message.toId {
+                    self.messagesDictionary[toId] = message
+                    
+                    self.messages = Array(self.messagesDictionary.values)
+                    self.messages.sort(by: { (message1, message2) -> Bool in
+                        return (message1.timestamp?.intValue)! > (message2.timestamp?.intValue)!
+                    })
+                }
                 //DispatchQueue.main.async(execute: {
                     self.tableView.reloadData()
                 //})
@@ -47,13 +59,16 @@ class MessagesController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cellId")
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! UserCell
         
         let message = messages[indexPath.row]
-        cell.textLabel?.text = message.toId
-        cell.detailTextLabel?.text = message.text
+        cell.message = message
         
         return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 72
     }
     
     @objc func handleNewMessage() {
@@ -81,12 +96,13 @@ class MessagesController: UITableViewController {
         //You can use the observeSingleEventOfType method to simplify this scenario: the event callback added triggers once and then does not trigger again.
             if let dictionary = snapshot.value as? [String: AnyObject] {
                 self.navigationItem.title = dictionary["name"] as? String
-                
-                //
-                self.navigationItem.titleView = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 40))
-                self.navigationItem.titleView?.backgroundColor = .red
-//            self.navigationItem.titleView?.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.showChatController)))
             }
+            
+            self.messages.removeAll()
+            self.messagesDictionary.removeAll()
+            
+            self.observeMessages()
+            
         }, withCancel: nil)
 
     }

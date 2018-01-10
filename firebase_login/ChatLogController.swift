@@ -40,6 +40,16 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate {
         return button
     }()
     
+    @objc func handleSend() {
+        let ref = Database.database().reference().child("messages")
+        let childRef = ref.childByAutoId()
+        let toId = user!.id!
+        let fromId = Auth.auth().currentUser!.uid
+        let timestamp = Int(Date().timeIntervalSince1970)
+        let values = ["text": inputTextField.text!, "toId": toId, "fromId": fromId, "timestamp": timestamp] as [String : Any]
+        childRef.updateChildValues(values)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
                 
@@ -65,16 +75,6 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate {
         
         _ = separatorLineView.anchor(top: containerView.topAnchor, left: containerView.leftAnchor, bottom: nil, right: containerView.rightAnchor, topConstant: 0, leftConstant: 0, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 1)
         
-    }
-    
-    @objc func handleSend() {
-        let ref = Database.database().reference().child("messages")
-        let childRef = ref.childByAutoId()
-        let toId = user!.id!
-        let fromId = Auth.auth().currentUser!.uid
-        let timestamp = Int(Date().timeIntervalSince1970)
-        let values = ["text": inputTextField.text!, "toId": toId, "fromId": fromId, "timestamp": timestamp] as [String : Any]
-        childRef.updateChildValues(values)
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
