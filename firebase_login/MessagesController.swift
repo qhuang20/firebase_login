@@ -29,31 +29,6 @@ class MessagesController: UITableViewController {
         
     }
     
-    var messagesDictionary = [String: Message]()
-
-    private func observeMessages() {
-        let ref = Database.database().reference().child("messages")
-        ref.observe(.childAdded, with: { (snapshot) in
-            
-            if let dictionary = snapshot.value as? [String: AnyObject] {
-                let message = Message(dictionary: dictionary)
-                
-                if let toId = message.toId {
-                    self.messagesDictionary[toId] = message
-                    
-                    self.messages = Array(self.messagesDictionary.values)
-                    self.messages.sort(by: { (message1, message2) -> Bool in
-                        return (message1.timestamp?.intValue)! > (message2.timestamp?.intValue)!
-                    })
-                }
-                //DispatchQueue.main.async(execute: {
-                    self.tableView.reloadData()
-                //})
-            }
-            
-        }, withCancel: nil)
-    }
-    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return messages.count
     }
@@ -100,14 +75,72 @@ class MessagesController: UITableViewController {
             
             self.messages.removeAll()
             self.messagesDictionary.removeAll()
+            self.tableView.reloadData()
             
-            self.observeMessages()
+            self.observeUserMessages()
             
         }, withCancel: nil)
 
     }
     
-    @objc public func showChatControllerFor(user: User) {
+    var messagesDictionary = [String: Message]()
+    
+    private func observeUserMessages() {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        let ref = Database.database().reference().child("user-messages").child(uid)
+        ref.observe(.childAdded, with: { (snapshot) in //weird snapshot
+
+            let messageId = snapshot.key
+            let messagesReference = Database.database().reference().child("messages").child(messageId)
+            messagesReference.observeSingleEvent(of: .value, with: { (snapshot) in
+                
+                if let dictionary = snapshot.value as? [String: AnyObject] {
+                    let message = Message(dictionary: dictionary)
+                    
+                    if let toId = message.toId {
+                        self.messagesDictionary[toId] = message
+                        
+                        self.messages = Array(self.messagesDictionary.values)
+                        self.messages.sort(by: { (message1, message2) -> Bool in
+                            
+                            return (message1.timestamp?.intValue)! > (message2.timestamp?.intValue)!
+                        })
+                    }
+                    
+                    //DispatchQueue.main.async(execute: {
+                        self.tableView.reloadData()
+                    //})
+                }
+                
+            }, withCancel: nil)
+            
+        }, withCancel: nil)
+    }
+    
+//    private func observeMessages() {
+//        let ref = Database.database().reference().child("messages")
+//        ref.observe(.childAdded, with: { (snapshot) in
+//
+//            if let dictionary = snapshot.value as? [String: AnyObject] {
+//                let message = Message(dictionary: dictionary)
+//
+//                if let toId = message.toId {
+//                    self.messagesDictionary[toId] = message
+//
+//                    self.messages = Array(self.messagesDictionary.values)
+//                    self.messages.sort(by: { (message1, message2) -> Bool in
+//                        return (message1.timestamp?.intValue)! > (message2.timestamp?.intValue)!
+//                    })
+//                }
+//                //DispatchQueue.main.async(execute: {
+//                self.tableView.reloadData()
+//                //})
+//            }
+//
+//        }, withCancel: nil)
+//    }
+    
+    public func showChatControllerFor(user: User) {
         let chatLogController = ChatLogController(collectionViewLayout: UICollectionViewFlowLayout())
         chatLogController.user = user
         navigationController?.pushViewController(chatLogController, animated: true)
