@@ -24,6 +24,7 @@
 		7BF31ED82002DC820018EE29 /* ChatLogController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BF31ED72002DC820018EE29 /* ChatLogController.swift */; };
 		7BF31EDA200418CC0018EE29 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BF31ED9200418CC0018EE29 /* Message.swift */; };
 		7BF31EDE200576470018EE29 /* UserCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BF31EDD200576470018EE29 /* UserCell.swift */; };
+		7BF31EF52008612E0018EE29 /* ChatMessageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BF31EF42008612E0018EE29 /* ChatMessageCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +47,7 @@
 		7BF31ED72002DC820018EE29 /* ChatLogController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatLogController.swift; sourceTree = "<group>"; };
 		7BF31ED9200418CC0018EE29 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		7BF31EDD200576470018EE29 /* UserCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCell.swift; sourceTree = "<group>"; };
+		7BF31EF42008612E0018EE29 /* ChatMessageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageCell.swift; sourceTree = "<group>"; };
 		B2F9CF07874A359E81DA48E2 /* Pods_firebase_login.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_firebase_login.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4323E161AF0772248AEDA49 /* Pods-firebase_login.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-firebase_login.release.xcconfig"; path = "Pods/Target Support Files/Pods-firebase_login/Pods-firebase_login.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -102,6 +104,7 @@
 			children = (
 				7BF31EDD200576470018EE29 /* UserCell.swift */,
 				7B71FFF71FFC7619004CBC37 /* NewMessageController.swift */,
+				7BF31EF42008612E0018EE29 /* ChatMessageCell.swift */,
 				7BF31ED72002DC820018EE29 /* ChatLogController.swift */,
 				7B1AC1971FF9D2B900591080 /* MessagesController.swift */,
 				7B7100282000A3E1004CBC37 /* LoginController */,
@@ -279,6 +282,7 @@
 				7B1AC1981FF9D2B900591080 /* MessagesController.swift in Sources */,
 				7B71FFFC1FFD9E50004CBC37 /* LoginController+handlers.swift in Sources */,
 				7B71FFF81FFC7619004CBC37 /* NewMessageController.swift in Sources */,
+				7BF31EF52008612E0018EE29 /* ChatMessageCell.swift in Sources */,
 				7BF31EDA200418CC0018EE29 /* Message.swift in Sources */,
 				7B1AC1961FF9D2B900591080 /* AppDelegate.swift in Sources */,
 				7BF31EDE200576470018EE29 /* UserCell.swift in Sources */,

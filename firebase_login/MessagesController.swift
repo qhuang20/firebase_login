@@ -29,6 +29,26 @@ class MessagesController: UITableViewController {
         
     }
     
+    @objc func handleNewMessage() {
+        let newMessageController = NewMessageController()
+        newMessageController.messagesController = self
+        let navController = UINavigationController(rootViewController: newMessageController)
+        present(navController, animated: true, completion: nil)
+    }
+    
+    @objc func handleLogout() {
+        
+        do {
+            try Auth.auth().signOut()//cache out currentUser
+        } catch let logoutError {
+            print(logoutError)
+        }
+        
+        let loginController = LoginController()
+        loginController.messagesController = self
+        present(loginController, animated: true, completion: nil)
+    }
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return messages.count
     }
@@ -46,11 +66,25 @@ class MessagesController: UITableViewController {
         return 72
     }
     
-    @objc func handleNewMessage() {
-        let newMessageController = NewMessageController()
-        newMessageController.messagesController = self
-        let navController = UINavigationController(rootViewController: newMessageController)
-        present(navController, animated: true, completion: nil)
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let message = messages[indexPath.row]
+        
+        guard let chatPartnerId = message.chatPartnerId() else {
+            return
+        }
+        
+        let ref = Database.database().reference().child("users").child(chatPartnerId)
+        ref.observeSingleEvent(of: .value, with: { (snapshot) in
+            guard let dictionary = snapshot.value as? [String: AnyObject] else {
+                return
+            }
+            
+            let user = User(dictionary: dictionary)
+            user.id = chatPartnerId
+            //user.setValuesForKeys(dictionary)
+            self.showChatControllerFor(user: user)
+            
+        }, withCancel: nil)
     }
      
     private func checkIfUserIsLoggedIn() {
@@ -88,8 +122,8 @@ class MessagesController: UITableViewController {
     private func observeUserMessages() {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         let ref = Database.database().reference().child("user-messages").child(uid)
-        ref.observe(.childAdded, with: { (snapshot) in //weird snapshot
-
+        ref.observe(.childAdded, with: { (snapshot) in //smart snapshot
+           
             let messageId = snapshot.key
             let messagesReference = Database.database().reference().child("messages").child(messageId)
             messagesReference.observeSingleEvent(of: .value, with: { (snapshot) in
@@ -117,47 +151,11 @@ class MessagesController: UITableViewController {
         }, withCancel: nil)
     }
     
-//    private func observeMessages() {
-//        let ref = Database.database().reference().child("messages")
-//        ref.observe(.childAdded, with: { (snapshot) in
-//
-//            if let dictionary = snapshot.value as? [String: AnyObject] {
-//                let message = Message(dictionary: dictionary)
-//
-//                if let toId = message.toId {
-//                    self.messagesDictionary[toId] = message
-//
-//                    self.messages = Array(self.messagesDictionary.values)
-//                    self.messages.sort(by: { (message1, message2) -> Bool in
-//                        return (message1.timestamp?.intValue)! > (message2.timestamp?.intValue)!
-//                    })
-//                }
-//                //DispatchQueue.main.async(execute: {
-//                self.tableView.reloadData()
-//                //})
-//            }
-//
-//        }, withCancel: nil)
-//    }
-    
     public func showChatControllerFor(user: User) {
         let chatLogController = ChatLogController(collectionViewLayout: UICollectionViewFlowLayout())
         chatLogController.user = user
         navigationController?.pushViewController(chatLogController, animated: true)
     }
     
-    @objc func handleLogout() {
-        
-        do {
-            try Auth.auth().signOut()//cache out currentUser
-        } catch let logoutError {
-            print(logoutError)
-        }
-        
-        let loginController = LoginController()
-        loginController.messagesController = self
-        present(loginController, animated: true, completion: nil)
-    }
-
 }
 
