@@ -29,6 +29,80 @@ class MessagesController: UITableViewController {
         
     }
     
+    private func checkIfUserIsLoggedIn() {
+        if Auth.auth().currentUser?.uid == nil {
+            perform(#selector(handleLogout), with: nil, afterDelay: 0)
+            //delay: to avoid presenting too many controllers at same time
+        } else {
+            fetchUserAndSetupNavBarTitle()
+        }
+    }
+    
+    public func fetchUserAndSetupNavBarTitle() {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        
+        let key = Database.database().reference().child("users").child(uid)
+        key.observeSingleEvent(of: .value, with: { (snapshot) in
+            //observeSingleEvent - this block will be invoked and removed right away.
+            //You can use the observeSingleEventOfType method to simplify this scenario: the event callback added triggers once and then does not trigger again.
+            if let dictionary = snapshot.value as? [String: AnyObject] {
+                self.navigationItem.title = dictionary["name"] as? String
+            }
+            
+            self.messages.removeAll()
+            self.messagesDictionary.removeAll()
+            self.tableView.reloadData()
+            
+            self.observeUserMessages()
+            
+        }, withCancel: nil)
+        
+    }
+    
+    var messagesDictionary = [String: Message]()
+    
+    private func observeUserMessages() {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        let ref = Database.database().reference().child("user-messages").child(uid)
+        ref.observe(.childAdded, with: { (snapshot) in //smart snapshot
+            
+            let messageId = snapshot.key
+            let messagesReference = Database.database().reference().child("messages").child(messageId)
+            messagesReference.observeSingleEvent(of: .value, with: { (snapshot) in
+
+                if let dictionary = snapshot.value as? [String: AnyObject] {
+                    let message = Message(dictionary: dictionary)
+                    
+                    if let chatPartnerId = message.chatPartnerId() {
+                        self.messagesDictionary[chatPartnerId] = message
+                        
+                        self.messages = Array(self.messagesDictionary.values)
+                        self.messages.sort(by: { (message1, message2) -> Bool in
+                            
+                            return (message1.timestamp?.intValue)! > (message2.timestamp?.intValue)!
+                        })
+                    }
+                    self.timer?.invalidate()
+                    print("timer is canceled")
+                    self.timer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(self.handleReloadTable), userInfo: nil, repeats: false)
+                    print("schedule a table reload in 0.1 sec")
+                }
+                
+            }, withCancel: nil)
+            
+        }, withCancel: nil)
+        
+    }
+    
+    var timer: Timer?
+    
+    @objc private func handleReloadTable() {
+        DispatchQueue.main.async(execute: {
+            print("reload")
+            self.tableView.reloadData()//hopfully, it gets called once
+        })
+    }
+    
     @objc func handleNewMessage() {
         let newMessageController = NewMessageController()
         newMessageController.messagesController = self
@@ -81,72 +155,7 @@ class MessagesController: UITableViewController {
             
             let user = User(dictionary: dictionary)
             user.id = chatPartnerId
-            //user.setValuesForKeys(dictionary)
             self.showChatControllerFor(user: user)
-            
-        }, withCancel: nil)
-    }
-     
-    private func checkIfUserIsLoggedIn() {
-        if Auth.auth().currentUser?.uid == nil {
-            perform(#selector(handleLogout), with: nil, afterDelay: 0)
-            //delay: to avoid presenting too many controllers at same time
-        } else {
-            fetchUserAndSetupNavBarTitle()
-        }
-    }
-    
-    public func fetchUserAndSetupNavBarTitle() {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
-
-        let key = Database.database().reference().child("users").child(uid)
-        key.observeSingleEvent(of: .value, with: { (snapshot) in
-        //observeSingleEvent - this block will be invoked and removed right away.
-        //You can use the observeSingleEventOfType method to simplify this scenario: the event callback added triggers once and then does not trigger again.
-            if let dictionary = snapshot.value as? [String: AnyObject] {
-                self.navigationItem.title = dictionary["name"] as? String
-            }
-            
-            self.messages.removeAll()
-            self.messagesDictionary.removeAll()
-            self.tableView.reloadData()
-            
-            self.observeUserMessages()
-            
-        }, withCancel: nil)
-
-    }
-    
-    var messagesDictionary = [String: Message]()
-    
-    private func observeUserMessages() {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
-        let ref = Database.database().reference().child("user-messages").child(uid)
-        ref.observe(.childAdded, with: { (snapshot) in //smart snapshot
-           
-            let messageId = snapshot.key
-            let messagesReference = Database.database().reference().child("messages").child(messageId)
-            messagesReference.observeSingleEvent(of: .value, with: { (snapshot) in
-                
-                if let dictionary = snapshot.value as? [String: AnyObject] {
-                    let message = Message(dictionary: dictionary)
-                    
-                    if let chatPartnerId = message.chatPartnerId() {
-                        self.messagesDictionary[chatPartnerId] = message
-                        
-                        self.messages = Array(self.messagesDictionary.values)
-                        self.messages.sort(by: { (message1, message2) -> Bool in
-                            
-                            return (message1.timestamp?.intValue)! > (message2.timestamp?.intValue)!
-                        })
-                    }
-                    
-                    //DispatchQueue.main.async(execute: {
-                        self.tableView.reloadData()
-                    //})
-                }
-                
-            }, withCancel: nil)
             
         }, withCancel: nil)
     }

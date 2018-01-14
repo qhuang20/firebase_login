@@ -42,6 +42,7 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
                 if message.chatPartnerId() == self.user?.id {
                     self.messages.append(message)
                     
+                    //print(Thread.isMainThread)
                     //DispatchQueue.main.async(execute: {
                         self.collectionView?.reloadData()
                     //})
@@ -149,9 +150,13 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellId, for: indexPath) as! ChatMessageCell
         
         let message = messages[indexPath.item]
-        cell.textView.text = message.text
+        cell.message = message
         
-        cell.bubbleWidthAnchor?.constant = estimateFrameForText(message.text!).width + 32
+        if let profileImageUrl = self.user?.profileImageUrl {
+            cell.profileImageView.loadImageUsingCacheWithUrlString(profileImageUrl)
+        }
+        
+        cell.bubbleViewWidthAnchor?.constant = estimateFrameForText(message.text!).width + 32
 
         return cell
     }

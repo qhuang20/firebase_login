@@ -7,8 +7,37 @@
 //
 
 import UIKit
+import Firebase
 
 class ChatMessageCell: UICollectionViewCell {
+    
+    var message: Message? {
+        didSet {
+            guard let message = message else { return }
+            textView.text = message.text
+            setup(message: message)
+        }
+    }
+    
+    private func setup(message: Message) {
+
+        if message.fromId == Auth.auth().currentUser?.uid {
+            bubbleView.backgroundColor = ChatMessageCell.blueColor
+            textView.textColor = UIColor.white
+            profileImageView.isHidden = true
+            
+            bubbleViewRightAnchor?.isActive = true
+            bubbleViewLeftAnchor?.isActive = false
+            
+        } else {
+            bubbleView.backgroundColor = UIColor(r: 240, g: 240, b: 240)
+            textView.textColor = UIColor.black
+            profileImageView.isHidden = false
+            
+            bubbleViewRightAnchor?.isActive = false
+            bubbleViewLeftAnchor?.isActive = true
+        }
+    }
     
     let textView: UITextView = {
         let tv = UITextView()
@@ -19,23 +48,43 @@ class ChatMessageCell: UICollectionViewCell {
         return tv
     }()
     
+    static let blueColor = UIColor(r: 0, g: 137, b: 249)
+    
     let bubbleView: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor(r: 0, g: 137, b: 249)
+        view.backgroundColor = blueColor
         view.layer.cornerRadius = 16
         //view.layer.masksToBounds = true
         return view
     }()
     
-    var bubbleWidthAnchor: NSLayoutConstraint?
+    let profileImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(named: "nedstark")
+        imageView.layer.cornerRadius = 16
+        imageView.layer.masksToBounds = true
+        imageView.contentMode = .scaleAspectFill
+        return imageView
+    }()
+    
+    var bubbleViewWidthAnchor: NSLayoutConstraint?
+    var bubbleViewRightAnchor: NSLayoutConstraint?
+    var bubbleViewLeftAnchor: NSLayoutConstraint?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         addSubview(bubbleView)
         addSubview(textView)
+        addSubview(profileImageView)
         
-        bubbleWidthAnchor = bubbleView.anchor(top: self.topAnchor, left: nil, bottom: nil, right: self.rightAnchor, topConstant: 0, leftConstant: 0, bottomConstant: 0, rightConstant: 8, widthConstant: 200, heightConstant: 0)["width"]
+        _ = profileImageView.anchor(top: nil, left: self.leftAnchor, bottom: self.bottomAnchor, right: nil, topConstant: 0, leftConstant: 8, bottomConstant: 0, rightConstant: 0, widthConstant: 32, heightConstant: 32)
+        
+        let bubbleAnchors = bubbleView.anchor(top: self.topAnchor, left: nil, bottom: nil, right: self.rightAnchor, topConstant: 0, leftConstant: 0, bottomConstant: 0, rightConstant: 8, widthConstant: 200, heightConstant: 0)
         bubbleView.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
+        
+        bubbleViewWidthAnchor = bubbleAnchors["width"]
+        bubbleViewLeftAnchor = bubbleView.leftAnchor.constraint(equalTo: profileImageView.rightAnchor, constant: 8)
+        bubbleViewRightAnchor = bubbleAnchors["right"]
        
         _ = textView.anchor(top: self.topAnchor, left: bubbleView.leftAnchor, bottom: nil, right: bubbleView.rightAnchor, topConstant: 0, leftConstant: 8, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 0)
         textView.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
