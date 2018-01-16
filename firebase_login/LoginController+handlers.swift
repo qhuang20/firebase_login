@@ -32,7 +32,7 @@ extension LoginController: UIImagePickerControllerDelegate, UINavigationControll
                 return
             }
             
-            self.messagesController?.fetchUserAndSetupNavBarTitle()
+            self.messagesController?.fetchUserData()
             //successfully logged in our user
             self.dismiss(animated: true, completion: nil)
             
