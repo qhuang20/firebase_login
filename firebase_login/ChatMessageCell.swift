@@ -37,11 +37,19 @@ class ChatMessageCell: UICollectionViewCell {
             bubbleViewRightAnchor?.isActive = false
             bubbleViewLeftAnchor?.isActive = true
         }
+        
+        if let messageImageUrl = message.imageUrl {
+            messageImageView.loadImageUsingCacheWithUrlString(messageImageUrl)
+            messageImageView.isHidden = false
+            bubbleView.backgroundColor = UIColor.clear
+        } else {
+            messageImageView.isHidden = true
+        }
     }
     
     let textView: UITextView = {
         let tv = UITextView()
-        tv.text = "SAMPLE TEXT FOR NOW"
+        //tv.text = "SAMPLE TEXT FOR NOW"
         tv.textColor = .white
         tv.font = UIFont.systemFont(ofSize: 16)
         tv.backgroundColor = .clear
@@ -60,7 +68,15 @@ class ChatMessageCell: UICollectionViewCell {
     
     let profileImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "nedstark")
+        //imageView.image = UIImage(named: "nedstark")
+        imageView.layer.cornerRadius = 16
+        imageView.layer.masksToBounds = true
+        imageView.contentMode = .scaleAspectFill
+        return imageView
+    }()
+    
+    let messageImageView: UIImageView = {
+        let imageView = UIImageView()
         imageView.layer.cornerRadius = 16
         imageView.layer.masksToBounds = true
         imageView.contentMode = .scaleAspectFill
@@ -76,6 +92,9 @@ class ChatMessageCell: UICollectionViewCell {
         addSubview(bubbleView)
         addSubview(textView)
         addSubview(profileImageView)
+        bubbleView.addSubview(messageImageView)
+       
+        _ = messageImageView.anchor(top: bubbleView.topAnchor, left: bubbleView.leftAnchor, bottom: bubbleView.bottomAnchor, right: bubbleView.rightAnchor, topConstant: 0, leftConstant: 0, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 0)
         
         _ = profileImageView.anchor(top: nil, left: self.leftAnchor, bottom: self.bottomAnchor, right: nil, topConstant: 0, leftConstant: 8, bottomConstant: 0, rightConstant: 0, widthConstant: 32, heightConstant: 32)
         
