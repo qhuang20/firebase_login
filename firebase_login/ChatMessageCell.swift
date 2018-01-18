@@ -45,6 +45,7 @@ class ChatMessageCell: UICollectionViewCell {
         } else {
             messageImageView.isHidden = true
         }
+        
     }
     
     let textView: UITextView = {
@@ -53,6 +54,7 @@ class ChatMessageCell: UICollectionViewCell {
         tv.textColor = .white
         tv.font = UIFont.systemFont(ofSize: 16)
         tv.backgroundColor = .clear
+        tv.isEditable = false
         return tv
     }()
     

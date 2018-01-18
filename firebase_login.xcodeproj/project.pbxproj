@@ -14,6 +14,7 @@
 		7B1AC19E1FF9D2B900591080 /* firebase_login.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 7B1AC19C1FF9D2B900591080 /* firebase_login.xcdatamodeld */; };
 		7B1AC1A01FF9D2B900591080 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7B1AC19F1FF9D2B900591080 /* Assets.xcassets */; };
 		7B1AC1A31FF9D2B900591080 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7B1AC1A11FF9D2B900591080 /* LaunchScreen.storyboard */; };
+		7B40AAD5201033C500D290D2 /* ChatLogController+handler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B40AAD4201033C500D290D2 /* ChatLogController+handler.swift */; };
 		7B7100272000A083004CBC37 /* UIImageView+CacheHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B7100262000A083004CBC37 /* UIImageView+CacheHelper.swift */; };
 		7B71FFF21FF9D525004CBC37 /* Basics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B71FFF11FF9D525004CBC37 /* Basics.swift */; };
 		7B71FFF41FF9D95A004CBC37 /* LoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B71FFF31FF9D95A004CBC37 /* LoginController.swift */; };
@@ -37,6 +38,7 @@
 		7B1AC19F1FF9D2B900591080 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7B1AC1A21FF9D2B900591080 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		7B1AC1A41FF9D2B900591080 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7B40AAD4201033C500D290D2 /* ChatLogController+handler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatLogController+handler.swift"; sourceTree = "<group>"; };
 		7B7100262000A083004CBC37 /* UIImageView+CacheHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImageView+CacheHelper.swift"; sourceTree = "<group>"; };
 		7B71FFF11FF9D525004CBC37 /* Basics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Basics.swift; sourceTree = "<group>"; };
 		7B71FFF31FF9D95A004CBC37 /* LoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginController.swift; sourceTree = "<group>"; };
@@ -103,8 +105,7 @@
 			isa = PBXGroup;
 			children = (
 				7B71FFF71FFC7619004CBC37 /* NewMessageController.swift */,
-				7BF31EF42008612E0018EE29 /* ChatMessageCell.swift */,
-				7BF31ED72002DC820018EE29 /* ChatLogController.swift */,
+				7B40AAD32010334700D290D2 /* ChatLogController */,
 				7BF31EDD200576470018EE29 /* UserCell.swift */,
 				7B1AC1971FF9D2B900591080 /* MessagesController.swift */,
 				7B7100282000A3E1004CBC37 /* LoginController */,
@@ -120,6 +121,16 @@
 				7B1AC1991FF9D2B900591080 /* Main.storyboard */,
 			);
 			path = firebase_login;
+			sourceTree = "<group>";
+		};
+		7B40AAD32010334700D290D2 /* ChatLogController */ = {
+			isa = PBXGroup;
+			children = (
+				7BF31EF42008612E0018EE29 /* ChatMessageCell.swift */,
+				7BF31ED72002DC820018EE29 /* ChatLogController.swift */,
+				7B40AAD4201033C500D290D2 /* ChatLogController+handler.swift */,
+			);
+			name = ChatLogController;
 			sourceTree = "<group>";
 		};
 		7B7100282000A3E1004CBC37 /* LoginController */ = {
@@ -289,6 +300,7 @@
 				7B1AC19E1FF9D2B900591080 /* firebase_login.xcdatamodeld in Sources */,
 				7B71FFF21FF9D525004CBC37 /* Basics.swift in Sources */,
 				7B71FFFA1FFC848D004CBC37 /* User.swift in Sources */,
+				7B40AAD5201033C500D290D2 /* ChatLogController+handler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

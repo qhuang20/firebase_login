@@ -14,7 +14,7 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
     var user: User? {
         didSet {
             navigationItem.title = user?.name
-            
+
             observeMessages()
         }
     }
@@ -33,7 +33,7 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
             let messagesRef = Database.database().reference().child("messages").child(messageId)
             messagesRef.observeSingleEvent(of: .value, with: { (snapshot) in
                 
-                guard let dictionary = snapshot.value as? [String: AnyObject] else {
+                guard let dictionary = snapshot.value as? [String: Any] else {
                     return
                 }
                 
@@ -42,9 +42,10 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
                 self.messages.append(message)
                 
                 //print(Thread.isMainThread)
-                //DispatchQueue.main.async(execute: {
-                    self.collectionView?.reloadData()
-                //})
+                self.collectionView?.reloadData()
+               
+                let indexPath = IndexPath(item: self.messages.count - 1, section: 0)
+                self.collectionView?.scrollToItem(at: indexPath, at: .bottom, animated: true)
                 
             }, withCancel: nil)
             
@@ -101,6 +102,10 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
         dismiss(animated: true, completion: nil)
     }
     
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
     private func uploadToFirebaseStorageWith(image: UIImage) {
         let imageName = UUID().uuidString
         let ref = Storage.storage().reference().child("message_images").child(imageName)
@@ -113,21 +118,33 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
                 }
                     
                 if let imageUrl = metedata?.downloadURL()?.absoluteString {
-                    self.sendMessageWith(imageUrl: imageUrl)
+                    self.sendMessageWith(imageUrl: imageUrl, image: image)
                 }
 
             })
         }
     }
     
-    private func sendMessageWith(imageUrl: String) {
+    private func sendMessageWith(imageUrl: String, image: UIImage) {
+        let properties: [String: Any] = ["imageUrl": imageUrl, "imageWidth": image.size.width, "imageHeight": image.size.height]
+        sendMessageWith(properties: properties)
+    }
+    
+    @objc func handleSend() {
+        let properties = ["text": inputTextField.text!]
+        sendMessageWith(properties: properties)
+    }
+    
+    private func sendMessageWith(properties: [String: Any]) {
         let ref = Database.database().reference().child("messages")
         let childRef = ref.childByAutoId()
         let toId = user!.id!
         let fromId = Auth.auth().currentUser!.uid
         let timestamp = Int(Date().timeIntervalSince1970)
         
-        let values = ["imageUrl": imageUrl, "toId": toId, "fromId": fromId, "timestamp": timestamp] as [String : Any]
+        var values: [String: Any] = ["toId": toId, "fromId": fromId, "timestamp": timestamp]
+        
+        properties.forEach({values[$0] = $1})
         
         childRef.updateChildValues(values) { (error, ref) in
             if error != nil {
@@ -145,35 +162,7 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
             let recipientUserMessagesRef = Database.database().reference().child("user-messages").child(toId).child(fromId)
             recipientUserMessagesRef.updateChildValues([messageId: 1])
         }
-    }
-    
-    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        dismiss(animated: true, completion: nil)
-    }
-    
-    @objc func handleSend() {
-        let ref = Database.database().reference().child("messages")
-        let childRef = ref.childByAutoId()
-        let toId = user!.id!
-        let fromId = Auth.auth().currentUser!.uid
-        let timestamp = Int(Date().timeIntervalSince1970)
-        let values = ["text": inputTextField.text!, "toId": toId, "fromId": fromId, "timestamp": timestamp] as [String : Any]
         
-        childRef.updateChildValues(values) { (error, ref) in
-            if error != nil {
-                print(error ?? "")
-                return
-            }
-            
-            self.inputTextField.text = nil
-            
-            let messageId = childRef.key
-            let userMessagesRef = Database.database().reference().child("user-messages").child(fromId).child(toId)
-            userMessagesRef.updateChildValues([messageId: 1])
-            
-            let recipientUserMessagesRef = Database.database().reference().child("user-messages").child(toId).child(fromId)
-            recipientUserMessagesRef.updateChildValues([messageId: 1])
-        }
     }
     
     override func viewDidLoad() {
@@ -196,8 +185,11 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
     }
     
     private func setupKeyboardObservers() {
+    
         NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         
+        NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardDidShow), name: NSNotification.Name.UIKeyboardDidShow, object: nil)
+
         NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
     }
     
@@ -206,26 +198,7 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
         
         NotificationCenter.default.removeObserver(self)
     }
-    
-    @objc func handleKeyboardWillShow(_ notification: Notification) {
-        let keyboardFrame = (notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as AnyObject).cgRectValue
-        let keyboardDuration = (notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as AnyObject).doubleValue
-        
-        containerViewBottomAnchor?.constant = -keyboardFrame!.height
-        UIView.animate(withDuration: keyboardDuration!, animations: {
-            self.view.layoutIfNeeded()
-        })
-    }
-    
-    @objc func handleKeyboardWillHide(_ notification: Notification) {
-        let keyboardDuration = (notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as AnyObject).doubleValue
-        
-        containerViewBottomAnchor?.constant = 0
-        UIView.animate(withDuration: keyboardDuration!, animations: {
-            self.view.layoutIfNeeded()
-        })
-    }
-    
+   
     var containerViewBottomAnchor: NSLayoutConstraint?
 
     private func setupInputComponents() {
@@ -260,6 +233,7 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
     }
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        
         return messages.count
     }
     
@@ -275,19 +249,27 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
         
         if let text = message.text {
             cell.bubbleViewWidthAnchor?.constant = estimateFrameForText(text).width + 32
+        } else if message.imageUrl != nil {
+            cell.bubbleViewWidthAnchor?.constant = 200
         }
         
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        var frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+        var height: CGFloat = 80
         
-        if let text = messages[indexPath.item].text {
-            frame = estimateFrameForText(text)
+        let message = messages[indexPath.item]
+        if let text = message.text {
+            
+            height = estimateFrameForText(text).height + 20
+       
+        } else if let imageWidth = message.imageWidth?.floatValue, let imageHeight = message.imageHeight?.floatValue {
+            
+            height = CGFloat(imageHeight / imageWidth * 200)//Geometry
         }
-        
-        return CGSize(width: view.frame.width, height: frame.height + 20)
+
+        return CGSize(width: view.frame.width, height: height)
     }
     
     private func estimateFrameForText(_ text: String) -> CGRect {
