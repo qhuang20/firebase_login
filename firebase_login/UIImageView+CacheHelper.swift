@@ -6,6 +6,7 @@
 //  Copyright © 2018 Qichen Huang. All rights reserved.
 //
 
+//https://www.youtube.com/watch?v=BIgqHLTZ_a4&index=1&list=WL
 import UIKit
 
 let imageCache = NSCache<NSString, AnyObject>()//on memory not disk

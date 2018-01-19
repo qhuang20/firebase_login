@@ -35,6 +35,56 @@ extension ChatLogController {
             collectionView?.scrollToItem(at: indexPath, at: .top, animated: true)
         }
     }
+
+    public func performZoomInForStartingImageView(_ startingImageView: UIImageView) {
+        self.startingImageView = startingImageView
+        startingImageView.isHidden = true
+        inputTextField.resignFirstResponder()///
+
+        startingFrame = startingImageView.superview?.convert(startingImageView.frame, to: nil)
+        guard let startingFrame = startingFrame else { return }
+        
+        let zoomingImageView = UIImageView(frame: startingFrame)
+        zoomingImageView.backgroundColor = UIColor.red
+        zoomingImageView.image = startingImageView.image
+        zoomingImageView.isUserInteractionEnabled = true
+        zoomingImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleZoomOut)))
+        
+        guard let keyWindow = UIApplication.shared.keyWindow else { return }
+        
+        blackBackgroundView = UIView(frame: keyWindow.frame)
+        blackBackgroundView?.backgroundColor = UIColor.black
+        blackBackgroundView?.alpha = 0
+        keyWindow.addSubview(blackBackgroundView!)
+        keyWindow.addSubview(zoomingImageView)
+        
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
+            
+            self.blackBackgroundView?.alpha = 1
+            
+            let height = startingFrame.height / startingFrame.width * keyWindow.frame.width
+            zoomingImageView.frame = CGRect(x: 0, y: 0, width: keyWindow.frame.width, height: height)
+            zoomingImageView.center = keyWindow.center
+            
+        }, completion: nil)
+    }
+    
+    @objc func handleZoomOut(_ tapGesture: UITapGestureRecognizer) {
+        guard let zoomOutImageView = tapGesture.view else { return }
+
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
+            
+            zoomOutImageView.layer.cornerRadius = 16
+            zoomOutImageView.clipsToBounds = true
+            
+            zoomOutImageView.frame = self.startingFrame!
+            self.blackBackgroundView?.alpha = 0
+            
+        }, completion: { (completed) in
+            zoomOutImageView.removeFromSuperview()
+            self.startingImageView?.isHidden = false
+        })
+    }
     
 }
 

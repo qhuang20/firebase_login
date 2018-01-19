@@ -11,6 +11,8 @@ import Firebase
 
 class ChatMessageCell: UICollectionViewCell {
     
+    weak var chatLogController: ChatLogController?
+    
     var message: Message? {
         didSet {
             guard let message = message else { return }
@@ -41,9 +43,11 @@ class ChatMessageCell: UICollectionViewCell {
         if let messageImageUrl = message.imageUrl {
             messageImageView.loadImageUsingCacheWithUrlString(messageImageUrl)
             messageImageView.isHidden = false
+            textView.isHidden = true
             bubbleView.backgroundColor = UIColor.clear
         } else {
             messageImageView.isHidden = true
+            textView.isHidden = false
         }
         
     }
@@ -64,7 +68,7 @@ class ChatMessageCell: UICollectionViewCell {
         let view = UIView()
         view.backgroundColor = blueColor
         view.layer.cornerRadius = 16
-        //view.layer.masksToBounds = true
+        view.layer.masksToBounds = true
         return view
     }()
     
@@ -77,13 +81,22 @@ class ChatMessageCell: UICollectionViewCell {
         return imageView
     }()
     
-    let messageImageView: UIImageView = {
+    lazy var messageImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.layer.cornerRadius = 16
         imageView.layer.masksToBounds = true
         imageView.contentMode = .scaleAspectFill
+        imageView.isUserInteractionEnabled = true
+        imageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleZoomTap)))
         return imageView
     }()
+    
+    @objc func handleZoomTap(_ tapGesture: UITapGestureRecognizer) {
+        if let imageView = tapGesture.view as? UIImageView {
+            //PRO Tip: don't perform a lot of custom logic inside of a view class
+            self.chatLogController?.performZoomInForStartingImageView(imageView)
+        }
+    }
     
     var bubbleViewWidthAnchor: NSLayoutConstraint?
     var bubbleViewRightAnchor: NSLayoutConstraint?
