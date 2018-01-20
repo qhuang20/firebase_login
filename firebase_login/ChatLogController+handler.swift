@@ -7,8 +7,153 @@
 //
 
 import UIKit
+import Firebase
+import MobileCoreServices
+import AVFoundation
 
-extension ChatLogController {
+extension ChatLogController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    
+    @objc func handleUploadTap() {
+        let imagePickerController = UIImagePickerController()
+        imagePickerController.allowsEditing = true
+        imagePickerController.delegate = self
+        imagePickerController.mediaTypes = [kUTTypeMovie as String, kUTTypeImage as String]
+        
+        present(imagePickerController, animated: true, completion: nil)
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        
+        if let videoFileUrl = info[UIImagePickerControllerMediaURL] as? URL {
+            uploadToFirebaseStorageWith(videoFileUrl: videoFileUrl)
+        }
+        
+        if let selectedImage = info[UIImagePickerControllerEditedImage] as? UIImage {
+            uploadToFirebaseStorageWith(image: selectedImage, completionHandler: { (imageUrl) in
+                self.sendMessageToDatabaseWith(imageUrl: imageUrl, image: selectedImage)
+            })
+        }
+        
+        dismiss(animated: true, completion: nil)
+    }
+    
+    private func uploadToFirebaseStorageWith(videoFileUrl: URL) {
+        let filename = UUID().uuidString + ".mov"
+        let uploadTask = Storage.storage().reference().child("message_movies").child(filename).putFile(from: videoFileUrl, metadata: nil, completion: { (metadata, error) in
+            
+            if error != nil {
+                print("uploadToFirebaseStorageWith: ", error!)
+                return
+            }
+            
+            guard let storageUrl = metadata?.downloadURL()?.absoluteString else {return}
+            guard let thumbnailImage = self.thumbnailImageFor(fileUrl: videoFileUrl) else { return }
+            self.uploadToFirebaseStorageWith(image: thumbnailImage, completionHandler: { (imageUrl) in
+               
+                self.sendMessageToDatabaseWith(videoUrl: storageUrl, imageUrl: imageUrl, thumbnailImage: thumbnailImage)
+            })
+            
+        })
+        
+        uploadTask.observe(.progress) { (snapshot) in
+            if let completedUnitCount = snapshot.progress?.completedUnitCount {
+                self.navigationItem.title = String(completedUnitCount)
+            }
+        }
+        
+        uploadTask.observe(.success) { (snapshot) in
+            self.navigationItem.title = self.user?.name
+        }
+        
+    }
+    
+    private func uploadToFirebaseStorageWith(image: UIImage, completionHandler: @escaping (String) -> ()) {
+        let imageName = UUID().uuidString
+        let ref = Storage.storage().reference().child("message_images").child(imageName)
+        
+        if let uploadData = UIImageJPEGRepresentation(image, 0.2) {
+            ref.putData(uploadData, metadata: nil, completion: { (metedata, error) in
+                if error != nil {
+                    print("uploadToFirebaseStorageWith: ", error!)
+                    return
+                }
+                
+                if let imageUrl = metedata?.downloadURL()?.absoluteString {
+                    completionHandler(imageUrl)
+                }
+                
+            })
+        }
+    }
+    
+    
+    
+    private func sendMessageToDatabaseWith(videoUrl: String, imageUrl: String, thumbnailImage: UIImage) {
+        let properties: [String: Any] = ["imageUrl": imageUrl, "imageWidth": thumbnailImage.size.width, "imageHeight": thumbnailImage.size.height, "videoUrl": videoUrl]
+        
+        sendMessageToDatabaseWith(properties: properties)
+    }
+    
+    private func sendMessageToDatabaseWith(imageUrl: String, image: UIImage) {
+        let properties: [String: Any] = ["imageUrl": imageUrl, "imageWidth": image.size.width, "imageHeight": image.size.height]
+        sendMessageToDatabaseWith(properties: properties)
+    }
+    
+    private func sendMessageToDatabaseWith(properties: [String: Any]) {
+        let ref = Database.database().reference().child("messages")
+        let childRef = ref.childByAutoId()
+        let toId = user!.id!
+        let fromId = Auth.auth().currentUser!.uid
+        let timestamp = Int(Date().timeIntervalSince1970)
+        
+        var values: [String: Any] = ["toId": toId, "fromId": fromId, "timestamp": timestamp]
+        
+        properties.forEach({values[$0] = $1})
+        
+        childRef.updateChildValues(values) { (error, ref) in
+            if error != nil {
+                print("sendMessageToDatabaseWith: ", error!)
+                return
+            }
+            
+            self.inputTextField.text = nil
+            
+            let userMessagesRef = Database.database().reference().child("user-messages").child(fromId).child(toId)
+            
+            let messageId = childRef.key
+            userMessagesRef.updateChildValues([messageId: 1])
+            
+            let recipientUserMessagesRef = Database.database().reference().child("user-messages").child(toId).child(fromId)
+            recipientUserMessagesRef.updateChildValues([messageId: 1])
+        }
+        
+    }
+    
+    private func thumbnailImageFor(fileUrl: URL) -> UIImage? {///
+        let asset = AVAsset(url: fileUrl)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        
+        do {
+            let thumbnailCGImage = try imageGenerator.copyCGImage(at: CMTimeMake(1, 60), actualTime: nil)
+            return UIImage(cgImage: thumbnailCGImage)
+            
+        } catch let err {
+            print(err)
+        }
+        
+        return nil
+    }
+    
+    @objc func handleSend() {
+        let properties = ["text": inputTextField.text!]
+        sendMessageToDatabaseWith(properties: properties)
+    }
+    
+    
     
     @objc func handleKeyboardWillShow(_ notification: Notification) {
         let keyboardFrame = (notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as AnyObject).cgRectValue
@@ -35,7 +180,9 @@ extension ChatLogController {
             collectionView?.scrollToItem(at: indexPath, at: .top, animated: true)
         }
     }
-
+    
+    
+    
     public func performZoomInForStartingImageView(_ startingImageView: UIImageView) {
         self.startingImageView = startingImageView
         startingImageView.isHidden = true

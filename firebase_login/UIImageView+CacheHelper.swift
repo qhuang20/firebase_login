@@ -28,7 +28,7 @@ extension UIImageView {
         URLSession.shared.dataTask(with: url!, completionHandler: { (data, response, error) in
             
             if let error = error {
-                print(error)
+                print("loadImageUsingCacheWithUrlString: ", error)
                 return
             }
             

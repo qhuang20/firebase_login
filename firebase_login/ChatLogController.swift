@@ -9,7 +9,7 @@
 import UIKit
 import Firebase
 
-class ChatLogController: UICollectionViewController, UITextFieldDelegate, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class ChatLogController: UICollectionViewController, UITextFieldDelegate, UICollectionViewDelegateFlowLayout {
     
     var user: User? {
         didSet {
@@ -84,87 +84,8 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
         imageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleUploadTap)))//must be lazy var
         return imageView
     }()
-    
-    @objc func handleUploadTap() {
-        let imagePickerController = UIImagePickerController()
-        imagePickerController.allowsEditing = true
-        imagePickerController.delegate = self
-        
-        present(imagePickerController, animated: true, completion: nil)
-    }
-    
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
-        
-        if let selectedImage = info["UIImagePickerControllerEditedImage"] as? UIImage {
-            uploadToFirebaseStorageWith(image: selectedImage)
-        }
-        
-        dismiss(animated: true, completion: nil)
-    }
-    
-    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        dismiss(animated: true, completion: nil)
-    }
-    
-    private func uploadToFirebaseStorageWith(image: UIImage) {
-        let imageName = UUID().uuidString
-        let ref = Storage.storage().reference().child("message_images").child(imageName)
-        
-        if let uploadData = UIImageJPEGRepresentation(image, 0.2) {
-            ref.putData(uploadData, metadata: nil, completion: { (metedata, error) in
-                if error != nil {
-                    print("Failed to upload image:", error!)
-                    return
-                }
-                    
-                if let imageUrl = metedata?.downloadURL()?.absoluteString {
-                    self.sendMessageWith(imageUrl: imageUrl, image: image)
-                }
 
-            })
-        }
-    }
-    
-    private func sendMessageWith(imageUrl: String, image: UIImage) {
-        let properties: [String: Any] = ["imageUrl": imageUrl, "imageWidth": image.size.width, "imageHeight": image.size.height]
-        sendMessageWith(properties: properties)
-    }
-    
-    @objc func handleSend() {
-        let properties = ["text": inputTextField.text!]
-        sendMessageWith(properties: properties)
-    }
-    
-    private func sendMessageWith(properties: [String: Any]) {
-        let ref = Database.database().reference().child("messages")
-        let childRef = ref.childByAutoId()
-        let toId = user!.id!
-        let fromId = Auth.auth().currentUser!.uid
-        let timestamp = Int(Date().timeIntervalSince1970)
-        
-        var values: [String: Any] = ["toId": toId, "fromId": fromId, "timestamp": timestamp]
-        
-        properties.forEach({values[$0] = $1})
-        
-        childRef.updateChildValues(values) { (error, ref) in
-            if error != nil {
-                print(error!)
-                return
-            }
-            
-            self.inputTextField.text = nil
-            
-            let userMessagesRef = Database.database().reference().child("user-messages").child(fromId).child(toId)
-            
-            let messageId = childRef.key
-            userMessagesRef.updateChildValues([messageId: 1])
-            
-            let recipientUserMessagesRef = Database.database().reference().child("user-messages").child(toId).child(fromId)
-            recipientUserMessagesRef.updateChildValues([messageId: 1])
-        }
-        
-    }
-    
+   
     override func viewDidLoad() {
         super.viewDidLoad()
         
